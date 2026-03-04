@@ -146,6 +146,11 @@ async def read_from_stream(stream, output_dir: str = ".", output_basename: str =
             bs_names = animation_data_stream_header.skel_animation_header.blend_shapes
             # Save audio header for later use
             audio_header = animation_data_stream_header.audio_header
+            # DEBUG: Print received blendshape names
+            print(f"\nDEBUG: Received {len(bs_names)} blendshape names:")
+            for i, name in enumerate(bs_names):
+                print(f"  [{i:2d}] {name}")
+            print()
         elif message.HasField("animation_data"):
             print(".", end="", flush=True)
             # Message is animation data.
