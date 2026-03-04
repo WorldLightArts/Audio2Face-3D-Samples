@@ -1,0 +1,28 @@
+[
+  {
+    "time_code":0.0,
+    "emotion_values.pain":0.0,
+    "emotion_values.amazement":0.0,
+    "emotion_values.anger":0.0,
+    "emotion_values.disgust":0.0,
+    "emotion_values.joy":1.0,
+    "emotion_values.sadness":0.0,
+    "emotion_values.outofbreath":0.0,
+    "emotion_values.cheekiness":0.0,
+    "emotion_values.grief":0.0,
+    "emotion_values.fear":0.0
+  },
+  {
+    "time_code":1.0,
+    "emotion_values.pain":0.1000000015,
+    "emotion_values.amazement":0.0,
+    "emotion_values.anger":0.0,
+    "emotion_values.disgust":0.0,
+    "emotion_values.joy":0.0,
+    "emotion_values.sadness":0.0,
+    "emotion_values.outofbreath":0.0,
+    "emotion_values.cheekiness":0.0,
+    "emotion_values.grief":0.0,
+    "emotion_values.fear":1.0
+  }
+]

@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd c:\\\\Users\\\\USER\\\\Documents\\\\GitHub\\\\Audio2Face-3D-Samples\\\\scripts\\\\audio2face_3d_api_client ; \\.\\\\\\.venv\\\\Scripts\\\\python convert_json_to_faceit\\.py results/MarkMark_neutral_animation_frames\\.json results/MarkMark_neutral_animation_frames_faceit\\.json$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
