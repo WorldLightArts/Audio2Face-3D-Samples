@@ -42,7 +42,7 @@ def get_audio_bit_format(audio_header: AudioHeader):
             return numpy.int16
     return None
 
-def save_audio_data_to_file(outdir: str, audio_header: AudioHeader, audio_buffer: bytes):
+def save_audio_data_to_file(outdir: str, audio_header: AudioHeader, audio_buffer: bytes, basename: str = "out"):
     """
     Reads the AudioHeader and output the content of the audio buffer into a wav
     file.
@@ -55,7 +55,8 @@ def save_audio_data_to_file(outdir: str, audio_header: AudioHeader, audio_buffer
 
     audio_data_to_save = numpy.frombuffer(audio_buffer, dtype=dtype) 
     # Write the audio data output as a wav file.
-    scipy.io.wavfile.write(f"{outdir}/out.wav", audio_header.samples_per_second, audio_data_to_save)
+    output_file = f"{outdir}/{basename}_audio.wav" if basename and basename != "out" else f"{outdir}/out.wav"
+    scipy.io.wavfile.write(output_file, audio_header.samples_per_second, audio_data_to_save)
 
 
 def parse_emotion_data(animation_data, emotion_key_frames):
@@ -88,7 +89,7 @@ def parse_emotion_data(animation_data, emotion_key_frames):
                 "emotion_values": dict(emotion_with_timecode.emotion),
             })
 
-async def read_from_stream(stream):
+async def read_from_stream(stream, output_dir: str = ".", output_basename: str = "output"):
     # List of blendshapes names recovered from the model data in the AnimationDataStreamHeader
     bs_names = []    
     # List of animation key frames, meaning a time code and the values of the blendshapes
@@ -107,23 +108,34 @@ async def read_from_stream(stream):
         # Read an incoming packet.
         message = await stream.read()
         if message == grpc.aio.EOF:
-            # Create directory with current date and time
-            timestamp = datetime.now()
-            dir_name = timestamp.strftime("%Y%m%d_%H%M%S_%f")
-            os.makedirs(dir_name, exist_ok=False)
             # End of File signals that the stream has been read completely.
             # Not the be confused with the Status Message that contains the response of the RPC call.
-            save_audio_data_to_file(dir_name, audio_header, audio_buffer)
+            save_audio_data_to_file(output_dir, audio_header, audio_buffer, output_basename)
 
             # Normalize the dictionnary data to output in JSON.
             df_animation = pandas.json_normalize(animation_key_frames)
             df_smoothed_output = pandas.json_normalize(emotion_key_frames["a2f_smoothed_output"])
             df_input = pandas.json_normalize(emotion_key_frames["input"])
 
-            # Save data to csv.
-            df_animation.to_csv(f"{dir_name}/animation_frames.csv")
-            df_smoothed_output.to_csv(f"{dir_name}/a2f_smoothed_emotion_output.csv")
-            df_input.to_csv(f"{dir_name}/a2f_input_emotions.csv")
+            # Save animation frames in Faceit-compatible format
+            # Faceit expects weightMat as a list of lists (values only, in the order of blendshape names)
+            import json
+            weight_mat = []
+            for frame in animation_key_frames:
+                blend_shapes_dict = frame.get("blendShapes", {})
+                # Extract values in the order of blendshape names
+                frame_values = [blend_shapes_dict.get(name, 0.0) for name in bs_names]
+                weight_mat.append(frame_values)
+            
+            animation_data = {
+                "weightMat": weight_mat
+            }
+            with open(f"{output_dir}/{output_basename}_animation_frames.json", 'w') as f:
+                json.dump(animation_data, f, indent=2)
+            
+            # Save emotion data as JSON arrays
+            df_smoothed_output.to_json(f"{output_dir}/{output_basename}_a2f_smoothed_emotion_output.json", orient='records', indent=2)
+            df_input.to_json(f"{output_dir}/{output_basename}_a2f_input_emotions.json", orient='records', indent=2)
             return
 
         if message.HasField("animation_data_stream_header"):
